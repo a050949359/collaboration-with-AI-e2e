@@ -1,0 +1,31 @@
+# 容器內跑測試：程式碼用 bind-mount 掛進去，瀏覽器/系統依賴來自官方 image。
+# 版本對齊 @playwright/test 1.60.0（image tag v1.60.0-noble）。
+#
+# 前置：host 先 `npm install` 一次（WSL2 Linux 與容器同 x86_64，node_modules 共用）。
+#
+# 常用：
+#   docker compose run --rm e2e                                   # 跑全部
+#   docker compose run --rm e2e npx playwright test --project=guest
+#   BASE_URL=http://localhost docker compose run --rm e2e         # 切本機目標
+
+services:
+  e2e:
+    image: mcr.microsoft.com/playwright:v1.60.0-noble
+    working_dir: /work
+    # 以 host 使用者身分跑，產出的 report/test-results 才屬於你而非 root。
+    # 預設 1000:1000；若你的 uid/gid 不同，跑前 export E2E_UID/E2E_GID 覆蓋。
+    user: "${E2E_UID:-1000}:${E2E_GID:-1000}"
+    # Chromium 在容器內需要較大 /dev/shm 與正確的 ipc/init，否則易 crash
+    ipc: host
+    init: true
+    environment:
+      - BASE_URL=${BASE_URL:-https://ohya.vip}
+      - CI=true
+      # storageState 擷取用（可留空；留空時 user/admin project 會 skip）
+      - E2E_USER_EMAIL=${E2E_USER_EMAIL:-}
+      - E2E_USER_PASSWORD=${E2E_USER_PASSWORD:-}
+      - E2E_ADMIN_EMAIL=${E2E_ADMIN_EMAIL:-}
+      - E2E_ADMIN_PASSWORD=${E2E_ADMIN_PASSWORD:-}
+    volumes:
+      - .:/work
+    command: npx playwright test

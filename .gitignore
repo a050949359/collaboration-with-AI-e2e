@@ -141,3 +141,15 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+
+# Captured login sessions (never commit credentials/sessions)
+.auth/
+
+# Editor MCP config holds a Bearer token — keep it out of git
+.vscode/mcp.json
