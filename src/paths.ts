@@ -9,23 +9,36 @@
  *    第一次跑 smoke 時若 redirect/404 與預期不符，請以實際部署為準回來修正。
  */
 
-/** 公開頁（guest 可直接瀏覽） */
+/**
+ * 公開頁（guest 可直接瀏覽，無 auth middleware）。
+ * /app/login 與 /app/register 在 Laravel 路由是 redirect → /app/，
+ * 所以登入入口就是首頁 /app。
+ */
 export const publicPaths = {
-  login: '/app/login',
-  register: '/app/register',
-} as const;
-
-/** 需登入頁（guest 進入應被導回登入頁） */
-export const authedPaths = {
-  articles: '/app/articles',
+  home: '/app',
   airports: '/app/airports',
   airlines: '/app/airlines',
   countries: '/app/countries',
+  about: '/app/about',
+  linebot: '/app/linebot',
   tourPlayground: '/app/tour-playground',
-  citySearch: '/app/city-search',
+  articles: '/app/articles',
+  miniOrch: '/app/mini-orch',
+  wsLab: '/app/ws-lab',
+  gacha: '/app/gacha',
+  task: '/app/task',
+  memory: '/app/memory',
+  computerVision: '/app/computer-vision',
+  gesture: '/app/gesture',
+  forgotPassword: '/app/forgot-password',
 } as const;
 
-/** 僅 admin 頁（user 進入應被 EnsureAdmin 擋下，見 obs #47） */
+/** 需登入頁（auth:sanctum；guest 進入應被導回登入） */
+export const authedPaths = {
+  articlesGenerate: '/app/articles/generate',
+} as const;
+
+/** 僅 admin 頁（auth:sanctum + EnsureAdmin；見 obs #47） */
 export const adminPaths = {
   admin: '/app/admin',
   storyRelay: '/app/story-relay',

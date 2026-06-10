@@ -12,8 +12,9 @@ test.describe('guest 撞受保護頁應導回登入', () => {
   for (const [name, path] of Object.entries(guarded)) {
     test(`${name} (${path}) → 導回登入`, async ({ page }) => {
       await page.goto(path);
-      // 落腳 URL 應是登入頁（或帶 redirect query 的登入頁）
-      await expect(page).toHaveURL(/\/app\/login/, { timeout: 15_000 });
+      // /app/login 是 Laravel named route，會再 redirect 到 /app/
+      // 所以最終落腳是首頁 /app
+      await expect(page).toHaveURL(/\/app\/?$/, { timeout: 15_000 });
     });
   }
 });

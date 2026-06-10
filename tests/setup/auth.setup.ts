@@ -42,15 +42,16 @@ for (const role of ['user', 'admin'] as Role[]) {
         `（對部署環境含 Turnstile，請改用 npm run auth:login 互動式擷取）`,
     );
 
-    await page.goto(publicPaths.login);
+    // 登入 UI 在首頁（/app/login 與 /app/register 皆 redirect 到 /app/）
+    await page.goto(publicPaths.home);
 
     // 選擇器為最佳猜測，請依實際登入頁調整
     await page.locator('input[type="email"], input[name="email"]').first().fill(email!);
     await page.locator('input[type="password"], input[name="password"]').first().fill(password!);
     await page.getByRole('button', { name: /登入|login|sign in/i }).click();
 
-    // 登入成功後應離開登入頁
-    await expect(page).not.toHaveURL(new RegExp(`${publicPaths.login}$`), { timeout: 15_000 });
+    // 等待登入後的頁面穩定（auth:sanctum cookie 寫入）
+    await page.waitForLoadState('networkidle', { timeout: 15_000 });
 
     fs.mkdirSync('.auth', { recursive: true });
     await page.context().storageState({ path: file });

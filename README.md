@@ -5,17 +5,18 @@
 - 對**部署環境唯讀** smoke 為主，`BASE_URL` 走 env 可切本機。
 - 三角色 **guest / user / admin**，各自 Playwright project 與 storageState。
 - 測試在 **Docker 容器**內跑（官方 Playwright image），程式碼用 volume 掛入。
+- 循序執行（`workers: 1`），避免對部署環境造成過大壓力。
 
 ## 結構
 
 ```
-src/paths.ts          # 目標站頁面路徑（自維護，不 import 主專案）
+src/paths.ts          # 目標站頁面路徑（對照主站路由自維護）
 playwright.config.ts  # guest/user/admin 三 project + storageState
 tests/
-  setup/auth.setup.ts        # 產生 user/admin 登入態 storageState
-  guest/public.smoke.spec.ts # 公開頁可載入
-  guest/auth-redirect.spec.ts# guest 撞受保護頁 → 導回登入（負向）
-  user/admin-guard.spec.ts   # user 撞 admin-only → 被 EnsureAdmin 擋（負向）
+  setup/auth.setup.ts              # 產生 user/admin 登入態 storageState
+  guest/public.smoke.spec.ts       # 16 個公開頁回 200 + RSA 公鑰 endpoint
+  guest/auth-redirect.spec.ts      # guest 撞受保護頁 → 導回首頁（負向）
+  user/admin-guard.spec.ts         # user 撞 admin-only → 被 EnsureAdmin 擋（負向）
   admin/admin-access.smoke.spec.ts # admin 可進後台（正向）
 docker-compose.yaml   # 容器內跑測試
 ```
@@ -49,5 +50,6 @@ BASE_URL=http://localhost docker compose run --rm e2e
   Google OAuth（Turnstile 只守 email/password 表單）或人工互動式登入一次擷取 storageState。
 - 沒給帳密時 `user` / `admin` 相關測試會自動 **skip**，不影響 guest smoke。
 
-> ⚠️ `src/paths.ts` 的頁面路徑是依主站 CLAUDE.md 推導的最佳猜測，第一次跑若與實際 redirect/404
-> 不符，以實際部署為準回來修正。
+## CI 觸發
+
+由主站 repo 部署完後透過 `repository_dispatch` 觸發，不綁定 PR 流程。
